@@ -1,4 +1,4 @@
-﻿# Byte-compiled / cache
+﻿# Arquivos ignorados
 __pycache__/
 *.pyc
 .env
