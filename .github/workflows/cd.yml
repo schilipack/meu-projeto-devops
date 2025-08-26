@@ -1,0 +1,51 @@
+﻿name: CD
+on:
+  pull_request:
+    branches: [ main ]    # staging na PR
+  push:
+    branches: [ main ]    # release no main
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build artifact (zip)
+        run: |
+          mkdir -p dist
+          zip -r dist/meu-projeto.zip src tests README.md .gitignore
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-zip
+          path: dist/meu-projeto.zip
+
+  deploy:
+    needs: package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-zip
+          path: dist
+
+      # PR (staging dry-run)
+      - name: Staging dry-run (PR)
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          echo "Staging OK para PR #${{ github.event.number }}"
+          ls -lh dist
+
+      # Push no main (release)
+      - name: Create GitHub Release (prod)
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Release ${{ github.run_number }}
+          body: |
+            Automatizado pelo CD (GitHub Actions).
+            Commit: ${{ github.sha }}
+          files: |
+            dist/meu-projeto.zip
