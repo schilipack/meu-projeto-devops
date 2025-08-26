@@ -1,0 +1,5 @@
+﻿# Byte-compiled / cache
+__pycache__/
+*.pyc
+.env
+
